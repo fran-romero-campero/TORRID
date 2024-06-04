@@ -589,10 +589,89 @@ col2rgb("darkgreen")
 transparent.darkgreen <- rgb(red = 0,green = 100,blue = 0,max=255,alpha=150)
 
 
-boxplot(logfc.lrm.h2o.30[setdiff(activated.genes.h2o.30.180,activated.genes.lrm.h2o.30)],logfc.h2o.30.180[setdiff(activated.genes.lrm.h2o.30,activated.genes.h2o.30.180)],logfc.lrm.h2o.30[intersect(activated.genes.h2o.30.180,activated.genes.lrm.h2o.30)],logfc.h2o.30.180[intersect(activated.genes.lrm.h2o.30,activated.genes.h2o.30.180)],outline=F,col=c(transparent.darkorange,transparent.darkgreen,colorRampPalette(c(transparent.darkorange,transparent.darkgreen))(5)[2],colorRampPalette(c(transparent.darkorange,transparent.darkgreen))(5)[2]))
+boxplot(logfc.lrm.h2o.30[setdiff(activated.genes.h2o.30.180,activated.genes.lrm.h2o.30)],
+        logfc.h2o.30.180[setdiff(activated.genes.lrm.h2o.30,activated.genes.h2o.30.180)],
+        logfc.lrm.h2o.30[intersect(activated.genes.h2o.30.180,activated.genes.lrm.h2o.30)],
+        logfc.h2o.30.180[intersect(activated.genes.lrm.h2o.30,activated.genes.h2o.30.180)],
+        outline=F,
+        col=c(transparent.darkorange,transparent.darkgreen,colorRampPalette(c(transparent.darkorange,transparent.darkgreen))(5)[2],colorRampPalette(c(transparent.darkorange,transparent.darkgreen))(5)[2]))
 lines(x = c(0,10),y=c(0,0),lty=3)
 
+# Make it a raincloud plot
+# Rainclouds
 
+library(ggdist)
+library(ggplot2)
+library(MetBrewer)
+library(ggrepel)
+library(cowplot)
+library(RColorBrewer)
+
+# Prepare matrix
+first.rain <- data.frame(group="1", value=as.numeric(logfc.lrm.h2o.30[setdiff(activated.genes.h2o.30.180,activated.genes.lrm.h2o.30)]))
+second.rain <- data.frame(group="2", value=as.numeric(logfc.h2o.30.180[setdiff(activated.genes.lrm.h2o.30,activated.genes.h2o.30.180)]))
+third.rain <- data.frame(group="3", value=as.numeric(logfc.lrm.h2o.30[intersect(activated.genes.h2o.30.180,activated.genes.lrm.h2o.30)]))
+fourth.rain <- data.frame(group="4", value=as.numeric(logfc.h2o.30.180[intersect(activated.genes.lrm.h2o.30,activated.genes.h2o.30.180)]))
+
+cloud.data <- rbind(first.rain, second.rain, third.rain, fourth.rain)
+head(cloud.data)
+
+colors.cloud <- c(transparent.darkorange,transparent.darkgreen,colorRampPalette(c(transparent.darkorange,transparent.darkgreen))(5)[2],colorRampPalette(c(transparent.darkorange,transparent.darkgreen))(5)[2])
+ 
+rainplot <- ggplot(as.data.frame(cloud.data), aes(x = factor(group, levels=unique(group)), y = value, fill = group)) +
+  scale_fill_manual(values=colors.cloud, breaks = unique(cloud.data$group))+
+  scale_color_manual(values=colors.cloud, breaks = unique(cloud.data$group))+
+  ggdist::stat_halfeye(
+    adjust = .35, 
+    width = .5, 
+    .width = 0, 
+    justification = -.45, 
+    point_colour = NA,
+  ) + 
+  stat_boxplot(aes(),geom = 'errorbar',linetype=1, width=0.1) +
+  geom_boxplot(
+    width = .25, 
+    outlier.shape = NA,
+    lwd=1
+  ) +
+  geom_point(
+    size = 1.0, aes(color = group),
+    alpha = .1,
+    position = position_jitter(
+      seed = 1, width = .1
+    )
+  ) + 
+  coord_cartesian(xlim = c(1.0, NA), clip = "off")+
+  
+  xlab(NULL) +
+  ylab(NULL)+
+  geom_hline(yintercept = 0, col = "black", linetype = 'dashed') +
+  theme(legend.position = "none", 
+        plot.title = element_text(hjust = 0.5, size = 16), 
+        panel.background = element_rect(fill = "white"),
+        axis.title = element_text(size = 20),
+        axis.text = element_text(size=12),
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        panel.grid.major = element_line(colour = "white"),
+        panel.grid.minor = element_line(colour = "white"),
+        axis.line.x.bottom = element_line(color = 'black'),
+        axis.line.y.left   = element_line(color = 'black'),
+        panel.border = element_blank()) +
+  ylim(-2,5.5)
+
+png("raincloud.png", width = 1800, height = 1800, res = 300)
+plot(rainplot)
+dev.off()
+
+
+ggsave2("ld_chloro_raincloud.png",width = 15,height = 10)
+
+
+
+
+
+
+# Venn for repressed genes
 {
 grid.newpage()
 draw.pairwise.venn(area1 = length(repressed.genes.h2o.30.180),cat.pos = c(190,180),cat.dist = 0.05,
