@@ -407,6 +407,130 @@ png("volcano_lrm_30.png", width = 3000, height = 2000, res = 300)
 plot(volcano_plot_lrm_30)
 dev.off()
 
+# GO enrichment activated genes (LRM 30 vs H20 30)
+activated.genes.lrm.h2o.30.enrich.go <- enrichGO(gene = activated.genes.lrm.h2o.30, 
+                                                 OrgDb = org.Taestivum.eg.db,
+                                                 universe = rownames(gene.expression.ta), 
+                                                 ont           = "BP",
+                                                 pAdjustMethod = "BH",
+                                                 pvalueCutoff  = 0.05,
+                                                 readable      = FALSE,
+                                                 keyType = "GID")
+
+activated.genes.lrm.h2o.30.enrich.go.df <- as.data.frame(activated.genes.lrm.h2o.30.enrich.go)
+
+write.table(x = activated.genes.lrm.h2o.30.enrich.go.df,file="activated_genes_lrm_h2o_30_enrich_go.tsv",quote = F,sep = "\t",row.names = F)
+
+# Treemap
+{
+revigo.names <- c("term_ID","description","frequency","uniqueness","dispensability","representative");
+revigo.data <- rbind(c("GO:0005982","starch metabolic process",0.040983699490203,0.9010512635831647,0.07962189,"starch metabolic process"),
+                     c("GO:0005984","disaccharide metabolic process",0.2026632601985772,0.8857305302732708,0.47009629,"starch metabolic process"),
+                     c("GO:0009311","oligosaccharide metabolic process",0.3704479822996164,0.8931154800567558,0.414014,"starch metabolic process"),
+                     c("GO:0006109","regulation of carbohydrate metabolic process",0.1417866428237562,0.94250869059614,-0,"regulation of carbohydrate metabolic process"),
+                     c("GO:0030656","regulation of vitamin metabolic process",0.004552375087707779,0.9348806505492289,0.19115702,"regulation of carbohydrate metabolic process"),
+                     c("GO:0032107","regulation of response to nutrient levels",0.07313130548314971,0.9074508710231366,0.58176449,"regulation of carbohydrate metabolic process"),
+                     c("GO:0032881","regulation of polysaccharide metabolic process",0.057874563851903815,0.8942708333752016,0.24142817,"regulation of carbohydrate metabolic process"),
+                     c("GO:0080148","negative regulation of response to water deprivation",0.0001774612919951056,0.9337815898885051,0.42513778,"regulation of carbohydrate metabolic process"),
+                     c("GO:1900367","positive regulation of defense response to insect",0.00017006707149530955,0.9174922904813134,0.42440006,"regulation of carbohydrate metabolic process"),
+                     c("GO:1900425","negative regulation of defense response to bacterium",0.0013432833907962855,0.9155837914566843,0.52914681,"regulation of carbohydrate metabolic process"),
+                     c("GO:1901141","regulation of lignin biosynthetic process",0.00025140349699306625,0.9419100948493303,0.64033671,"regulation of carbohydrate metabolic process"),
+                     c("GO:1904965","regulation of vitamin E biosynthetic process",1.9717921332789515E-05,0.9387742155369267,0.64749804,"regulation of carbohydrate metabolic process"),
+                     c("GO:1904966","positive regulation of vitamin E biosynthetic process",1.9717921332789515E-05,0.93207958286999,0.50934064,"regulation of carbohydrate metabolic process"),
+                     c("GO:1905034","regulation of antifungal innate immune response",0.00037217576515640203,0.9160088444501951,0.48673677,"regulation of carbohydrate metabolic process"),
+                     c("GO:2000070","regulation of response to water deprivation",0.0013112417686305027,0.9282321045735893,0.10790585,"regulation of carbohydrate metabolic process"),
+                     c("GO:2000762","regulation of phenylpropanoid metabolic process",0.005555524335513445,0.9347617055354593,0.19348436,"regulation of carbohydrate metabolic process"),
+                     c("GO:0006767","water-soluble vitamin metabolic process",1.2065050999910578,0.8283392366983222,0.03842157,"water-soluble vitamin metabolic process"),
+                     c("GO:0006563","L-serine metabolic process",0.2663767935051533,0.8193015915611126,0.2985208,"water-soluble vitamin metabolic process"),
+                     c("GO:0006766","vitamin metabolic process",1.256768546208505,0.8498242814287484,0.35118373,"water-soluble vitamin metabolic process"),
+                     c("GO:0009404","toxin metabolic process",0.08737257416575693,0.9228528451525968,0.05058592,"toxin metabolic process"),
+                     c("GO:0009407","toxin catabolic process",0.009016019529418004,0.8529198286216787,0.59727878,"toxin metabolic process"),
+                     c("GO:0009809","lignin biosynthetic process",0.024309732263162874,0.8270574608808813,0.6358361,"toxin metabolic process"),
+                     c("GO:0009625","response to insect",0.000539778096485113,0.9643009689825971,-0,"response to insect"),
+                     c("GO:0009749","response to glucose",0.058823488816044316,0.9094081045506305,0.51531967,"response to insect"),
+                     c("GO:0016036","cellular response to phosphate starvation",0.07367847780013462,0.9491532934950722,0.37275592,"response to insect"),
+                     c("GO:0043434","response to peptide hormone",0.19767216136121488,0.9039099314704905,0.69760009,"response to insect"),
+                     c("GO:0046686","response to cadmium ion",0.02872408190154112,0.9378122200782615,0.14134599,"response to insect"),
+                     c("GO:0060359","response to ammonium ion",0.0006901272466476329,0.9375770671137353,0.49996243,"response to insect"),
+                     c("GO:0061760","antifungal innate immune response",0.0015700394861233652,0.9626447014747748,0.39537663,"response to insect"),
+                     c("GO:0071369","cellular response to ethylene stimulus",0.038408046016107374,0.9164104648674045,0.35931117,"response to insect"),
+                     c("GO:0009718","anthocyanin-containing compound biosynthetic process",0.0029700119007514203,0.9020842985252061,0.03652024,"anthocyanin-containing compound biosynthetic process"),
+                     c("GO:0006011","UDP-glucose metabolic process",0.04799835000434287,0.7594673361208526,0.33285723,"anthocyanin-containing compound biosynthetic process"),
+                     c("GO:0046349","amino sugar biosynthetic process",0.16032395361674495,0.8232211988786658,0.10773451,"anthocyanin-containing compound biosynthetic process"),
+                     c("GO:0010230","alternative respiration",0.007818155808451042,0.9417187154417953,0.02717564,"alternative respiration"),
+                     c("GO:0010431","seed maturation",0.002551006072429643,0.9908235224396884,0,"seed maturation"),
+                     c("GO:0009704","de-etiolation",0.0020876349211090897,0.9609560445563063,0.59324692,"seed maturation"),
+                     c("GO:0015977","carbon fixation",0.042674511244489705,0.9506694176650013,-0,"carbon fixation"),
+                     c("GO:0017014","protein nitrosylation",9.612486649734888E-05,0.9333055858469922,0.03072367,"protein nitrosylation"),
+                     c("GO:0006575","cellular modified amino acid metabolic process",1.1845763067288293,0.8899084982258868,0.10312018,"protein nitrosylation"),
+                     c("GO:0006749","glutathione metabolic process",0.33273992249082307,0.863833746073326,0.18598634,"protein nitrosylation"),
+                     c("GO:0006750","glutathione biosynthetic process",0.05906996283270419,0.8239761731621957,0.6671716,"protein nitrosylation"),
+                     c("GO:0018119","peptidyl-cysteine S-nitrosylation",9.119538616415149E-05,0.9318198163087279,0.38938339,"protein nitrosylation"),
+                     c("GO:0018198","peptidyl-cysteine modification",0.01781021244384213,0.9111242942037798,0.28022578,"protein nitrosylation"),
+                     c("GO:0019184","nonribosomal peptide biosynthetic process",0.19618345830058925,0.8335428267346694,0.46794114,"protein nitrosylation"),
+                     c("GO:0046505","sulfolipid metabolic process",0.17912499160755974,0.8380347877586894,0.59841245,"protein nitrosylation"),
+                     c("GO:0046506","sulfolipid biosynthetic process",0.17912006212722653,0.8002245494126037,0.59841108,"protein nitrosylation"),
+                     c("GO:0043693","monoterpene biosynthetic process",7.147746483136198E-05,0.8779515081200668,0.07391108,"monoterpene biosynthetic process"),
+                     c("GO:0006643","membrane lipid metabolic process",1.10151702785462,0.8317855568036494,0.30215704,"monoterpene biosynthetic process"),
+                     c("GO:0006694","steroid biosynthetic process",0.2949431320360321,0.7495016244081962,0.49532952,"monoterpene biosynthetic process"),
+                     c("GO:0009247","glycolipid biosynthetic process",0.7048811812848927,0.7316725200417646,0.59578979,"monoterpene biosynthetic process"),
+                     c("GO:0009395","phospholipid catabolic process",0.12197752610480252,0.7615761089655728,0.69336156,"monoterpene biosynthetic process"),
+                     c("GO:0016042","lipid catabolic process",1.4093137798594644,0.8239087852360161,0.58366296,"monoterpene biosynthetic process"),
+                     c("GO:0043692","monoterpene metabolic process",8.380116566435544E-05,0.9020535856788482,0.50228334,"monoterpene biosynthetic process"),
+                     c("GO:0046475","glycerophospholipid catabolic process",0.05117540007908858,0.7747625911416651,0.65008118,"monoterpene biosynthetic process"),
+                     c("GO:0046503","glycerolipid catabolic process",0.1769338375994535,0.830597232201768,0.5198576,"monoterpene biosynthetic process"),
+                     c("GO:1903509","liposaccharide metabolic process",1.0088230796691766,0.7846528490840348,0.56223164,"monoterpene biosynthetic process"),
+                     c("GO:0051259","protein complex oligomerization",0.23363025565172313,0.9796462491856014,-0,"protein complex oligomerization"),
+                     c("GO:0051262","protein tetramerization",0.04135094577502621,0.9810813081466744,0.53264918,"protein complex oligomerization"),
+                     c("GO:0055081","monoatomic anion homeostasis",0.027077635470253197,0.9776304492940234,-0,"monoatomic anion homeostasis"),
+                     c("GO:0030002","intracellular monoatomic anion homeostasis",0.0007492810106460015,0.980041630011044,0.4346327,"monoatomic anion homeostasis"),
+                     c("GO:0030643","intracellular phosphate ion homeostasis",0.04212487418733819,0.9763730144016386,0.50632071,"monoatomic anion homeostasis"),
+                     c("GO:0055062","phosphate ion homeostasis",0.04733779963969443,0.9767320873423171,0.58356474,"monoatomic anion homeostasis"),
+                     c("GO:0071836","nectar secretion",0.00012077226816333578,0.978056720368052,-0,"nectar secretion"),
+                     c("GO:0006817","phosphate ion transport",0.2426906405041399,0.9670929941021582,0.13980114,"nectar secretion"),
+                     c("GO:0015713","phosphoglycerate transmembrane transport",0.003985484849390081,0.9416117155462926,0.55136091,"nectar secretion"),
+                     c("GO:0015714","phosphoenolpyruvate transport",0.0052844029171875894,0.9464009226641851,0.25038389,"nectar secretion"),
+                     c("GO:0015748","organophosphate ester transport",0.37259230624455725,0.9475198029600548,0.32578074,"nectar secretion"),
+                     c("GO:0035627","ceramide transport",0.019542924780961007,0.9495592565263469,0.18863509,"nectar secretion"),
+                     c("GO:0042873","aldonate transmembrane transport",0.023853755332342113,0.9361795865988178,0.60559877,"nectar secretion"),
+                     c("GO:0090481","pyrimidine nucleotide-sugar transmembrane transport",0.05787702859207042,0.9307611543532037,0.35289052,"nectar secretion"),
+                     c("GO:0120009","intermembrane lipid transfer",0.11033409355779031,0.9320938834326131,0.60157124,"nectar secretion"),
+                     c("GO:1901264","carbohydrate derivative transport",0.41917836013343907,0.9471295251252203,0.4160251,"nectar secretion"),
+                     c("GO:1901334","lactone metabolic process",0.08600464337329466,0.8884992236195826,0.05918817,"lactone metabolic process"),
+                     c("GO:0008655","pyrimidine-containing compound salvage",0.07123099081470212,0.7470027091689898,0.31123743,"lactone metabolic process"),
+                     c("GO:0009173","pyrimidine ribonucleoside monophosphate metabolic process",0.21775979371899418,0.7371605672875675,0.47971038,"lactone metabolic process"),
+                     c("GO:0009208","pyrimidine ribonucleoside triphosphate metabolic process",0.16502421311444862,0.7426340610988151,0.45622658,"lactone metabolic process"),
+                     c("GO:0019336","phenol-containing compound catabolic process",0.04817581129633798,0.843080780469754,0.15525694,"lactone metabolic process"),
+                     c("GO:0032958","inositol phosphate biosynthetic process",0.03756017539879743,0.7770140263632731,0.67851077,"lactone metabolic process"),
+                     c("GO:0043647","inositol phosphate metabolic process",0.05878158823321214,0.8034227702582816,0.50083657,"lactone metabolic process"),
+                     c("GO:0046244","salicylic acid catabolic process",2.21826614993882E-05,0.8689139087482665,0.51820171,"lactone metabolic process"),
+                     c("GO:0046434","organophosphate catabolic process",0.9710632603168847,0.802895435030072,0.35595493,"lactone metabolic process"),
+                     c("GO:1901336","lactone biosynthetic process",0.05878651771354534,0.8134133279504976,0.16682536,"lactone metabolic process"));
+
+stuff <- data.frame(revigo.data);
+names(stuff) <- revigo.names;
+
+stuff$frequency <- as.numeric( as.character(stuff$frequency) );
+stuff$uniqueness <- as.numeric( as.character(stuff$uniqueness) );
+stuff$dispensability <- as.numeric( as.character(stuff$dispensability) );
+
+library(treemap)
+
+# check the tmPlot command documentation for all possible parameters - there are a lot more
+treemap(
+  stuff,
+  index = c("representative","description"),
+  vSize = "uniqueness",
+  type = "categorical",
+  vColor = "representative",
+  title = "",
+  inflate.labels = TRUE,      # set this to TRUE for space-filling group labels - good for posters
+  lowerbound.cex.labels = 0,   # try to draw as many labels as possible (still, some small squares may not get a label)
+  position.legend = "none"
+)
+
+}
+
 # GO enrichment repressed genes (LRM 30 vs H20 30)
 repressed.genes.lrm.h2o.30.enrich.go <- enrichGO(gene = repressed.genes.lrm.h2o.30, 
                                                  OrgDb = org.Taestivum.eg.db,
@@ -664,25 +788,7 @@ plot(rainplot)
 dev.off()
 
 
-ggsave2("ld_chloro_raincloud.png",width = 15,height = 10)
-
-
-
-
-
-
-# Venn for repressed genes
-{
-grid.newpage()
-draw.pairwise.venn(area1 = length(repressed.genes.h2o.30.180),cat.pos = c(190,180),cat.dist = 0.05,
-                   area2 = length(repressed.genes.lrm.h2o.30),
-                   cross.area = length(intersect(repressed.genes.h2o.30.180,repressed.genes.lrm.h2o.30)),
-                   lwd = 3,category = c("Drought","LRM"),euler.d = T,
-                   col = c("darkorange","darkgreen"),
-                   fill = c("darkorange","darkgreen"),alpha = 0.5,
-                   cex = 2,
-                   cat.cex = 2)
-}
+#ggsave2("raincloud.png",width = 15,height = 10)
 
 
 
@@ -812,7 +918,83 @@ activated.common.lrm.30.drought.enrich.go <- enrichGO(gene = activated.common.lr
 
 activated.common.lrm.30.drought.enrich.go.df <- as.data.frame(activated.common.lrm.30.drought.enrich.go)
 
-write.table(x = activated.specific.lrm.30.enrich.go.df,file="activated_specific_lrm_30_enrich_go.tsv",quote = F,sep = "\t",row.names = F)
+write.table(x = activated.common.lrm.30.drought.enrich.go.df,file="activated_common_lrm_30_enrich_go.tsv",quote = F,sep = "\t",row.names = F)
+
+
+activated.specific.drought.lrm.30 <- setdiff(activated.genes.h2o.30.180, activated.genes.lrm.h2o.30)
+length(activated.specific.drought.lrm.30)
+
+activated.specific.drought.lrm.30.enrich.go <- enrichGO(gene = activated.specific.drought.lrm.30, 
+                                                OrgDb = org.Taestivum.eg.db,
+                                                universe = rownames(gene.expression.ta), 
+                                                ont           = "BP",
+                                                pAdjustMethod = "BH",
+                                                pvalueCutoff  = 0.05,
+                                                readable      = FALSE,
+                                                keyType = "GID")
+
+
+activated.specific.drought.lrm.30.enrich.go.df <- as.data.frame(activated.specific.drought.lrm.30.enrich.go)
+
+write.table(x = activated.specific.drought.lrm.30.enrich.go,file="activated_specific_drought_lrm_30_enrich_go.tsv",quote = F,sep = "\t",row.names = F)
+
+# Functional enrichment of the comparison between LRM and drought repressed
+repressed.specific.lrm.30 <- setdiff(repressed.genes.lrm.h2o.30,repressed.genes.h2o.30.180)
+length(repressed.specific.lrm.30)
+
+repressed.specific.lrm.30.enrich.go <- enrichGO(gene = repressed.specific.lrm.30, 
+                                                OrgDb = org.Taestivum.eg.db,
+                                                universe = rownames(gene.expression.ta), 
+                                                ont           = "BP",
+                                                pAdjustMethod = "BH",
+                                                pvalueCutoff  = 0.05,
+                                                readable      = FALSE,
+                                                keyType = "GID")
+
+
+repressed.specific.lrm.30.enrich.go.df <- as.data.frame(repressed.specific.lrm.30.enrich.go)
+head(repressed.specific.lrm.30.enrich.go.df)
+
+write.table(x = repressed.specific.lrm.30.enrich.go.df,file="repressed_specific_lrm_30_enrich_go.tsv",quote = F,sep = "\t",row.names = F)
+
+
+repressed.common.lrm.30.drought <- intersect(repressed.genes.lrm.h2o.30,repressed.genes.h2o.30.180)
+length(repressed.common.lrm.30.drought)
+
+repressed.common.lrm.30.drought.enrich.go <- enrichGO(gene = repressed.common.lrm.30.drought, 
+                                                      OrgDb = org.Taestivum.eg.db,
+                                                      universe = rownames(gene.expression.ta), 
+                                                      ont           = "BP",
+                                                      pAdjustMethod = "BH",
+                                                      pvalueCutoff  = 0.05,
+                                                      readable      = FALSE,
+                                                      keyType = "GID")
+
+
+repressed.common.lrm.30.drought.enrich.go.df <- as.data.frame(repressed.common.lrm.30.drought.enrich.go)
+head(repressed.common.lrm.30.drought.enrich.go.df)
+
+write.table(x = repressed.common.lrm.30.drought.enrich.go.df,file="repressed_common_lrm_30_enrich_go.tsv",quote = F,sep = "\t",row.names = F)
+
+
+repressed.specific.drought.lrm.30 <- setdiff(repressed.genes.h2o.30.180, repressed.genes.lrm.h2o.30)
+length(repressed.specific.drought.lrm.30)
+
+repressed.specific.drought.lrm.30.enrich.go <- enrichGO(gene = repressed.specific.drought.lrm.30, 
+                                                        OrgDb = org.Taestivum.eg.db,
+                                                        universe = rownames(gene.expression.ta), 
+                                                        ont           = "BP",
+                                                        pAdjustMethod = "BH",
+                                                        pvalueCutoff  = 0.05,
+                                                        readable      = FALSE,
+                                                        keyType = "GID")
+
+
+repressed.specific.drought.lrm.30.enrich.go.df <- as.data.frame(repressed.specific.drought.lrm.30.enrich.go)
+head(repressed.specific.drought.lrm.30.enrich.go.df)
+
+write.table(x = repressed.specific.drought.lrm.30.enrich.go,file="repressed_specific_drought_lrm_30_enrich_go.tsv",quote = F,sep = "\t",row.names = F)
+
 
 
 ## Differential gene expression analysis of LRM treated plants under Full Irrigation
@@ -1307,6 +1489,21 @@ subset(psr.h2o.30.180, padj < 0.05)
 psr.res.lrm.30 <- res.lrm.30[psr_genes_in_dataset,]
 as.data.frame(psr.res.lrm.30)
 sig.genes.psr.lrm.30 <- as.data.frame(subset(psr.res.lrm.30, padj < 0.05))
+
+# 
+ht1 <- read.table("result_2/ht1_genes.csv", sep="\t", header = T)
+ht1_genes_in_dataset <- ht1[ht1 %in% rownames(res.h2o.30.180)]
+sapply(ht1_genes_in_dataset, function(x) barplots.ggplot2(gene = x, dataset = gene.expression.fpkm))
+sapply(ht1_genes_in_dataset, function(x) barplots.ggplot2.h2o(gene = x, dataset = gene.expression.fpkm))
+
+
+ht1.h2o.30.180 <- res.h2o.30.180[ht1_genes_in_dataset,]
+as.data.frame(ht1.h2o.30.180)
+subset(ht1.h2o.30.180, padj < 0.05)
+
+ht1.res.lrm.30 <- res.lrm.30[ht1_genes_in_dataset,]
+as.data.frame(ht1.res.lrm.30)
+sig.genes.ht1.lrm.30 <- as.data.frame(subset(ht1.res.lrm.30, padj < 0.05))
 
 
 # Heatmaps for Result 2
