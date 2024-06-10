@@ -1512,8 +1512,16 @@ activated.genes.lrm.180.enrich.go <- enrichGO(gene = activated.genes.lrm.180,
                                               readable      = FALSE,
                                               keyType = "GID")
 
-activated.genes.lrm.180.enrich.go.df <- as.data.frame(activated.genes.lrm.180.enrich.go)
 
+
+
+tree_gos_plot <- treeplot(pairwise_termsim(activated.genes.lrm.180.enrich.go),showCategory = 15, cluster.params = list(n=2,label_words_n = 0))
+
+png("treeplot_act_180.png", res=300, height = 1800, width = 3400)
+plot(tree_gos_plot)
+dev.off()
+
+activated.genes.lrm.180.enrich.go.df <- as.data.frame(activated.genes.lrm.180.enrich.go)
 write.table(x = activated.genes.lrm.180.enrich.go.df,file="activated_genes_lrm_180_enrich_go.tsv",quote = F,sep = "\t",row.names = F)
 
 
