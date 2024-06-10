@@ -26,40 +26,43 @@ head(gene.expression.ta)
 dds.wheat <- DESeqDataSetFromMatrix(countData=gene.expression.ta, colData=experimental.design, design = ~ treatment)
 dds.wheat <- DESeq(dds.wheat)
 rld <- rlog(dds.wheat)
-counts(rld)
+colData(rld)
 
-plotPCA(object = rld,intgroup=c("sample","treatment"))
+png("pca.png", width = 3000, height = 2000, res = 300)
+plotPCA(object = rld,intgroup=c("treatment"))
+dev.off()
+
 
 # Change PCA format
-# library(FactoMineR)
-# library(factoextra)
-# 
-# counted_wheat <- log2(counts(dds.wheat, normalized=TRUE) + 1)
-# 
-# pca.gene.expression <- data.frame(colnames(counted_wheat),
-#                                   t(counted_wheat))
-# colnames(pca.gene.expression)[1] <- "Sample"
-# pca.gene.expression[1:6, 1:6]
-# 
-# res.pca <- PCA(pca.gene.expression, graph = FALSE,scale.unit = TRUE,quali.sup = 1 )
-# res.hcpc <- HCPC(res.pca, graph=FALSE,nb.clust = 4)   
-# fviz_dend(res.hcpc,k=4,
-#           cex = 0.75,                       # Label size
-#           palette = "jco",               # Color palette see ?ggpubr::ggpar
-#           rect = TRUE, rect_fill = TRUE, # Add rectangle around groups
-#           rect_border = "jco",           # Rectangle color
-#           type="rectangle",
-#           labels_track_height = 1400      # Augment the room for labels
-# )
-# 
-# 
-# fviz_pca_ind(res.pca, col.ind = c(rep("H20_180", 3), rep("LRM_180",3), rep("LRM_30",3), rep("H2O_30",3)), 
-#              pointsize=2, pointshape=21,fill="black",
-#              repel = TRUE, 
-#              addEllipses = TRUE,ellipse.type = "confidence",
-#              legend.title="Conditions",
-#              title="",
-#              show_legend=TRUE,show_guide=TRUE)
+library(FactoMineR)
+library(factoextra)
+
+counted_wheat <- log2(counts(dds.wheat, normalized=TRUE) + 1)
+
+pca.gene.expression <- data.frame(colnames(counted_wheat),
+                                  t(counted_wheat))
+colnames(pca.gene.expression)[1] <- "Sample"
+pca.gene.expression[1:6, 1:6]
+
+res.pca <- PCA(pca.gene.expression, graph = FALSE,scale.unit = T,quali.sup = 1,  )
+res.hcpc <- HCPC(res.pca, graph=FALSE,nb.clust = 4)
+fviz_dend(res.hcpc,k=4,
+          cex = 0.75,                       # Label size
+          palette = "jco",               # Color palette see ?ggpubr::ggpar
+          rect = TRUE, rect_fill = TRUE, # Add rectangle around groups
+          rect_border = "jco",           # Rectangle color
+          type="rectangle",
+          labels_track_height = 1400      # Augment the room for labels
+)
+
+
+fviz_pca_ind(res.pca, col.ind = c(rep("H20_180", 3), rep("LRM_180",3), rep("LRM_30",3), rep("H2O_30",3)),
+             pointsize=2, pointshape=21,fill="black",
+             repel = TRUE,
+             addEllipses = TRUE,ellipse.type = "confidence",
+             legend.title="Conditions",
+             title="",
+             show_legend=TRUE,show_guide=TRUE)
 
 
 ##### Differential gene expression analysis under drought stress (not treated)
@@ -97,7 +100,13 @@ df$diffexpressed[df$log2FoldChange > 1 & df$padj < 0.05] <- "UP"
 df$diffexpressed[df$log2FoldChange < -1 & df$padj < 0.05] <- "DOWN"
 df$names <- rownames(df)
 
-sort()
+theme_set(theme_classic(base_size = 20) +
+            theme(
+              axis.title.y = element_text(face = "bold", margin = margin(0,20,0,0), size = rel(1.1), color = 'black'),
+              axis.title.x = element_text(hjust = 0.5, face = "bold", margin = margin(20,0,0,0), size = rel(1.1), color = 'black'),
+              plot.title = element_text(hjust = 0.5)
+            ))
+
 volcano_plot_h2o <-  ggplot(data = df, aes(x = log2FoldChange, y = -log10(padj), col = diffexpressed)) +
   geom_vline(xintercept = c(-1, 1), col = "gray", linetype = 'dashed') +
   geom_hline(yintercept = -log10(0.05), col = "gray", linetype = 'dashed') +
@@ -107,7 +116,7 @@ volcano_plot_h2o <-  ggplot(data = df, aes(x = log2FoldChange, y = -log10(padj),
 
 png("volcano_h2o.png", width = 3000, height = 2000, res = 300)
 plot(volcano_plot_h2o)
-sort(df$log2FoldChange, decreasing = T)
+dev.off()
 
 # GO enrichment analysis under drought stress (not treated)
 taestivium2atha <- read.table(file="../TORRID/taestivium_atha.csv",header=T,fill = T)
@@ -394,6 +403,13 @@ df_lrm_30$diffexpressed <- "NO"
 df_lrm_30$diffexpressed[df_lrm_30$log2FoldChange > 1 & df_lrm_30$padj < 0.05] <- "UP"
 df_lrm_30$diffexpressed[df_lrm_30$log2FoldChange < -1 & df_lrm_30$padj < 0.05] <- "DOWN"
 df_lrm_30$names <- rownames(df_lrm_30)
+
+theme_set(theme_classic(base_size = 20) +
+            theme(
+              axis.title.y = element_text(face = "bold", margin = margin(0,20,0,0), size = rel(1.1), color = 'black'),
+              axis.title.x = element_text(hjust = 0.5, face = "bold", margin = margin(20,0,0,0), size = rel(1.1), color = 'black'),
+              plot.title = element_text(hjust = 0.5)
+            ))
 
 volcano_plot_lrm_30 <-  ggplot(data = df_lrm_30, aes(x = log2FoldChange, y = -log10(padj), col = diffexpressed)) +
   geom_vline(xintercept = c(-1, 1), col = "gray", linetype = 'dashed') + xlim(c(-10,10)) +
@@ -791,45 +807,6 @@ dev.off()
 #ggsave2("raincloud.png",width = 15,height = 10)
 
 
-
-# Create barplots in FPKM
-gene.expression.fpkm <- read.table(file="taestivium_gene_expression.tsv",header = T,sep = "\t")
-
-common <- intersect(activated.genes.lrm.h2o.30,activated.genes.h2o.30.180)
-for(i in 1:100)
-{
-  gene <- common[i]
-  conds <- c("h2o_180","h2o_30","LRM_30")
-  cols <- c("blue", "darkorange", "darkgreen")
-  
-  means <- vector(mode = "numeric",length = length(conds))
-  sds <- vector(mode = "numeric",length = length(conds))
-  
-  gene.matrix <- matrix(NA,nrow=length(conds),ncol=3)
-  rownames(gene.matrix) <- conds
-  for(i in 1:length(conds))
-  {
-    gene.matrix[i,] <- unlist(gene.expression.fpkm[gene,paste(conds[i],1:3,sep="_")])
-  }
-  
-  means <- rowMeans(gene.matrix)
-  sds <- apply(X = gene.matrix,MARGIN = 1,FUN = sd)
-  
-  arrow.top <- means + sds
-  arrow.bottom <- means - sds
-  jpeg(filename = paste(c("barplots_common/barplot_",gene,".jpg"),collapse=""),width = 1500,height = 1500,res = 300)
-  xpos <- barplot(height = means,ylim=c(0,1.1*max(arrow.top)),col=cols,main=gene)
-  arrows(x0 = xpos,y0 = means + sds, x1 = xpos,y1 = means - sds,length = 0.1,angle = 90,code = 3)
-  
-  for(i in 1:length(conds))
-  {
-    points(x = rep(xpos[i]+0.2,3),y = gene.matrix[i,],lwd=2)
-  }
-  dev.off()
-  
-  
-}
-
 # Functional enrichment of the comparison between LRM and drought activated
 activated.specific.lrm.30 <- setdiff(activated.genes.lrm.h2o.30,activated.genes.h2o.30.180)
 length(activated.specific.lrm.30)
@@ -997,122 +974,12 @@ write.table(x = repressed.specific.drought.lrm.30.enrich.go,file="repressed_spec
 
 
 
-## Differential gene expression analysis of LRM treated plants under Full Irrigation
-res.lrm.180 <- results(dds.wheat,contrast=c("treatment","LRM_180","H2O_180"))
-res.lrm.180$padj[is.na(res.lrm.180$padj)] <- 1
-
-genes.lrm.180 <- rownames(res.lrm.180)
-
-activated.genes.lrm.180 <- genes.lrm.180[res.lrm.180$log2FoldChange > log2(1.5) & res.lrm.180$padj < 0.05]
-length(activated.genes.lrm.180)
-
-repressed.genes.lrm.180 <- genes.lrm.180[res.lrm.180$log2FoldChange < -log2(1.5) & res.lrm.180$padj < 0.05]
-length(repressed.genes.lrm.180)
-
-logfc.lrm.180 <- res.lrm.180$log2FoldChange
-names(logfc.lrm.180) <- genes.lrm.180
-logqval.lrm.180 <- -log10(res.lrm.180$padj)
-names(logqval.lrm.180) <- genes.lrm.180
-
-plot(logfc.lrm.180[logqval.lrm.180 > 0],logqval.lrm.180[logqval.lrm.180 > 0],pch=19,cex=0.7,xlim=c(-7,7),ylim=c(0,5),col="grey",xlab="log2FC",ylab="-log10(q-value)")
-points(logfc.lrm.180[activated.genes.lrm.180],logqval.lrm.180[activated.genes.lrm.180],cex=0.7,col="red",pch=19)
-points(logfc.lrm.180[repressed.genes.lrm.180],logqval.lrm.180[repressed.genes.lrm.180],cex=0.7,col="blue",pch=19)
-
-activated.genes.lrm.180.enrich.go <- enrichGO(gene = activated.genes.lrm.180, 
-                                              OrgDb = org.Taestivum.eg.db,
-                                              universe = rownames(gene.expression.ta), 
-                                              ont           = "BP",
-                                              pAdjustMethod = "BH",
-                                              pvalueCutoff  = 0.05,
-                                              readable      = FALSE,
-                                              keyType = "GID")
-
-activated.genes.lrm.180.enrich.go.df <- as.data.frame(activated.genes.lrm.180.enrich.go)
-
-write.table(x = activated.genes.h2o.30.180.enrich.go.df,file="activated_genes_lrm_180_enrich_go.tsv",quote = F,sep = "\t",row.names = F)
-
-
-repressed.genes.lrm.180.enrich.go <- enrichGO(gene = repressed.genes.lrm.180, 
-                                              OrgDb = org.Taestivum.eg.db,
-                                              universe = rownames(gene.expression.ta), 
-                                              ont           = "BP",
-                                              pAdjustMethod = "BH",
-                                              pvalueCutoff  = 0.05,
-                                              readable      = FALSE,
-                                              keyType = "GID")
-
-repressed.genes.lrm.180.enrich.go.df <- as.data.frame(repressed.genes.lrm.180.enrich.go)
-
-write.table(x = repressed.genes.lrm.180.enrich.go.df,file="repressed_genes_lrm_180_enrich_go.tsv",quote = F,sep = "\t",row.names = F)
-
-
-length(intersect(activated.genes.lrm.h2o.30,activated.genes.lrm.180))
-
-length(intersect(activated.genes.lrm.h2o.30,repressed.genes.lrm.180))
-length(intersect(repressed.genes.lrm.h2o.30,repressed.genes.lrm.180))
-
-
-length(intersect(activated.genes.lrm.180,activated.genes.h2o.30.180))
-length(intersect(activated.genes.lrm.180,repressed.genes.h2o.30.180))
-length(intersect(repressed.genes.lrm.180,repressed.genes.h2o.30.180))
-
-
-
-logfc.h2o.30.180 <- res.h2o.30.180$log2FoldChange
-names(logfc.h2o.30.180) <- genes.h2o.30.180
-logqval.h2o.30.180 <- -log10(res.h2o.30.180$padj)
-names(logqval.h2o.30.180) <- genes.h2o.30.180
-
-plot(logfc.h2o.30.180[logqval.h2o.30.180 > 0],logqval.h2o.30.180[logqval.h2o.30.180 > 0],pch=19,cex=0.7,xlim=c(-12,12),ylim=c(0,35),col="grey",xlab="log2FC",ylab="-log10(q-value)")
-points(logfc.h2o.30.180[activated.genes.h2o.30.180],logqval.h2o.30.180[activated.genes.h2o.30.180],cex=0.7,col="red",pch=19)
-points(logfc.h2o.30.180[repressed.genes.h2o.30.180],logqval.h2o.30.180[repressed.genes.h2o.30.180],cex=0.7,col="blue",pch=19)
-
-
-common <- intersect(activated.genes.lrm.h2o.30,activated.genes.h2o.30.180)
-
-genes <- repressed.genes.lrm.180
-for(i in 1:length(genes))
-{
-  gene <- genes[i]
-  conds <- c("h2o_180","h2o_30","LRM_30","LRM_180")
-  cols <- c("blue", "darkorange", "darkgreen",colorRampPalette(c("blue","darkgreen"))(3)[2])
-  
-  means <- vector(mode = "numeric",length = length(conds))
-  sds <- vector(mode = "numeric",length = length(conds))
-  
-  gene.matrix <- matrix(NA,nrow=length(conds),ncol=3)
-  rownames(gene.matrix) <- conds
-  for(i in 1:length(conds))
-  {
-    gene.matrix[i,] <- unlist(gene.expression.fpkm[gene,paste(conds[i],1:3,sep="_")])
-  }
-  
-  means <- rowMeans(gene.matrix)
-  sds <- apply(X = gene.matrix,MARGIN = 1,FUN = sd)
-  
-  arrow.top <- means + sds
-  arrow.bottom <- means - sds
-  jpeg(filename = paste(c("barplots_lrm_180/barplot_",gene,".jpg"),collapse=""),width = 1500,height = 1500,res = 300)
-  xpos <- barplot(height = means,ylim=c(0,1.1*max(arrow.top)),col=cols,main=gene)
-  arrows(x0 = xpos,y0 = means + sds, x1 = xpos,y1 = means - sds,length = 0.1,angle = 90,code = 3)
-  
-  for(i in 1:length(conds))
-  {
-    points(x = rep(xpos[i]+0.2,3),y = gene.matrix[i,],lwd=2)
-  }
-  dev.off()
-  
-  
-}
-
-subset(taestivium2atha,locusName %in% activated.genes.lrm.180)[[2]]
-
-
 # Barplots for genes in all conditions
 
 # Create barplots in FPKM
-gene.expression.fpkm <- read.table(file="../TORRID/taestivium_gene_expression.tsv",header = T,sep = "\t")
+gene.expression.fpkm <- read.table(file="../TORRID/taestivium_gene_expression.tsv",header = T,sep = "\t", dec = ",", as.is = T, row.names = 1)
 head(gene.expression.fpkm)
+write.table(gene.expression.fpkm, "taestivium_gene_expression.tsv", quote = F, row.names = T, col.names = T, sep = "\t")
 
 library(ggplot2)
 
@@ -1575,3 +1442,222 @@ sapply(rownames(sig.genes.ca.lrm.30), function(x) barplot.heatmap.gene(gene.id =
 # Heatmaps DEGs QUAC1 genes
 sapply(rownames(sig.genes.quac1.lrm.30), function(x) barplot.heatmap.gene(gene.id = x, 
                                                                           gene.expression = gene.expression.fpkm, max.fc = 2))
+
+# Result 3
+## Differential gene expression analysis of LRM treated plants under Full Irrigation
+res.lrm.180 <- results(dds.wheat,contrast=c("treatment","LRM_180","H2O_180"))
+res.lrm.180$padj[is.na(res.lrm.180$padj)] <- 1
+
+genes.lrm.180 <- rownames(res.lrm.180)
+
+activated.genes.lrm.180 <- genes.lrm.180[res.lrm.180$log2FoldChange > log2(1.5) & res.lrm.180$padj < 0.05]
+length(activated.genes.lrm.180)
+
+repressed.genes.lrm.180 <- genes.lrm.180[res.lrm.180$log2FoldChange < -log2(1.5) & res.lrm.180$padj < 0.05]
+length(repressed.genes.lrm.180)
+
+# Volcano plot
+logfc.lrm.180 <- res.lrm.180$log2FoldChange
+names(logfc.lrm.180) <- genes.lrm.180
+logqval.lrm.180 <- -log10(res.lrm.180$padj)
+names(logqval.lrm.180) <- genes.lrm.180
+
+plot(logfc.lrm.180[logqval.lrm.180 > 0],logqval.lrm.180[logqval.lrm.180 > 0],pch=19,cex=0.7,xlim=c(-7,7),ylim=c(0,5),col="grey",xlab="log2FC",ylab="-log10(q-value)")
+points(logfc.lrm.180[activated.genes.lrm.180],logqval.lrm.180[activated.genes.lrm.180],cex=0.7,col="red",pch=19)
+points(logfc.lrm.180[repressed.genes.lrm.180],logqval.lrm.180[repressed.genes.lrm.180],cex=0.7,col="blue",pch=19)
+
+# With ggplot2
+library(tidyverse) 
+library(RColorBrewer) 
+library(ggrepel) 
+
+df.lrm.180 <- as.data.frame(res.lrm.180)
+head(df.lrm.180)
+
+df.lrm.180$diffexpressed <- "NO"
+df.lrm.180$diffexpressed[df.lrm.180$log2FoldChange > log2(1.5) & df.lrm.180$padj < 0.05] <- "UP"
+df.lrm.180$diffexpressed[df.lrm.180$log2FoldChange < -log2(1.5) & df.lrm.180$padj < 0.05] <- "DOWN"
+df.lrm.180$names <- rownames(df.lrm.180)
+
+theme_set(theme_classic(base_size = 20) +
+            theme(
+              axis.title.y = element_text(face = "bold", margin = margin(0,20,0,0), size = rel(1.1), color = 'black'),
+              axis.title.x = element_text(hjust = 0.5, face = "bold", margin = margin(20,0,0,0), size = rel(1.1), color = 'black'),
+              plot.title = element_text(hjust = 0.5)
+            ))
+
+volcano_plot_lrm.180 <-  ggplot(data = df.lrm.180, aes(x = log2FoldChange, y = -log10(padj), col = diffexpressed)) +
+  geom_vline(xintercept = c(-log2(1.5), log2(1.5)), col = "gray", linetype = 'dashed') + xlim(c(-8,8)) + ylim(c(0,5)) +
+  geom_hline(yintercept = -log10(0.05), col = "gray", linetype = 'dashed') +
+  geom_point(size = 2) +
+  scale_color_manual(values = c("#00AFBB", "grey", "red"), # to set the colours of our variable<br /><br /><br />
+                     labels = c("Downregulated", "Not significant", "Upregulated")) # to set the labels in case we want to overwrite the categories from the dataframe (UP, DOWN, NO)</p><br /><br />
+
+png("volcano_lrm_180.png", width = 3000, height = 2000, res = 300)
+plot(volcano_plot_lrm.180)
+dev.off()
+
+# Functional enrichment of activated and repressed genes by LRM under irrigation
+library(clusterProfiler)
+library(enrichplot)
+library(org.At.tair.db)
+library(org.Taestivum.eg.db)
+
+activated.genes.lrm.180.enrich.go <- enrichGO(gene = activated.genes.lrm.180, 
+                                              OrgDb = org.Taestivum.eg.db,
+                                              universe = rownames(gene.expression.ta), 
+                                              ont           = "BP",
+                                              pAdjustMethod = "BH",
+                                              pvalueCutoff  = 0.05,
+                                              readable      = FALSE,
+                                              keyType = "GID")
+
+activated.genes.lrm.180.enrich.go.df <- as.data.frame(activated.genes.lrm.180.enrich.go)
+
+write.table(x = activated.genes.lrm.180.enrich.go.df,file="activated_genes_lrm_180_enrich_go.tsv",quote = F,sep = "\t",row.names = F)
+
+
+repressed.genes.lrm.180.enrich.go <- enrichGO(gene = repressed.genes.lrm.180, 
+                                              OrgDb = org.Taestivum.eg.db,
+                                              universe = rownames(gene.expression.ta), 
+                                              ont           = "BP",
+                                              pAdjustMethod = "BH",
+                                              pvalueCutoff  = 0.05,
+                                              readable      = FALSE,
+                                              keyType = "GID")
+
+repressed.genes.lrm.180.enrich.go.df <- as.data.frame(repressed.genes.lrm.180.enrich.go)
+
+write.table(x = repressed.genes.lrm.180.enrich.go.df,file="repressed_genes_lrm_180_enrich_go.tsv",quote = F,sep = "\t",row.names = F)
+
+
+length(intersect(activated.genes.lrm.h2o.30,activated.genes.lrm.180))
+
+length(intersect(activated.genes.lrm.h2o.30,repressed.genes.lrm.180))
+length(intersect(repressed.genes.lrm.h2o.30,repressed.genes.lrm.180))
+
+
+length(intersect(activated.genes.lrm.180,activated.genes.h2o.30.180))
+length(intersect(activated.genes.lrm.180,repressed.genes.h2o.30.180))
+length(intersect(repressed.genes.lrm.180,repressed.genes.h2o.30.180))
+
+# Barplots of activated and repressed genes
+sapply(activated.genes.lrm.180, function(x) barplots.ggplot2(gene = x, dataset = gene.expression.fpkm))
+sapply(repressed.genes.lrm.180, function(x) barplots.ggplot2(gene = x, dataset = gene.expression.fpkm))
+
+# Treemap activated genes
+{
+  library(treemap)
+  revigo.names <- c("term_ID","description","frequency","uniqueness","dispensability","representative");
+  revigo.data <- rbind(c("GO:0009641","shade avoidance",0.0003204162216578296,0.772475649157364,-0,"shade avoidance"),
+                       c("GO:0048571","long-day photoperiodism",0.0008059700344777714,0.7338628319070892,0.48734826,"shade avoidance"),
+                       c("GO:0048574","long-day photoperiodism, flowering",0.0005964671203168828,0.7351363827379533,0.6593882,"shade avoidance"),
+                       c("GO:0042752","regulation of circadian rhythm",0.08089030752760239,0.8729214057225224,0,"regulation of circadian rhythm"),
+                       c("GO:0042754","negative regulation of circadian rhythm",0.004387237496545666,0.8863096948272162,0.11197257,"regulation of circadian rhythm"),
+                       c("GO:0044092","negative regulation of molecular function",0.0036749275883986455,0.7382379715745363,0.10497025,"regulation of circadian rhythm"),
+                       c("GO:1902446","regulation of shade avoidance",4.6830063165375095E-05,0.8533132663605822,0.29413431,"regulation of circadian rhythm"),
+                       c("GO:2000030","regulation of response to red or far red light",0.004793919624034451,0.8358687121716452,0.11255422,"regulation of circadian rhythm"));
+  
+  stuff <- data.frame(revigo.data);
+  names(stuff) <- revigo.names;
+  
+  stuff$frequency <- as.numeric( as.character(stuff$frequency) );
+  stuff$uniqueness <- as.numeric( as.character(stuff$uniqueness) );
+  stuff$dispensability <- as.numeric( as.character(stuff$dispensability) );
+  
+  png("treemap_act_lrm_180.png", width = 3000, height = 2000, res = 300)
+  
+  treemap(
+    stuff,
+    index = c("representative","description"),
+    vSize = "uniqueness",
+    type = "categorical",
+    vColor = "representative",
+    title = " ",
+    inflate.labels = TRUE,     
+    lowerbound.cex.labels = 0,   
+    position.legend = "none"
+  )
+  
+  dev.off()
+}
+
+# Treemap repressed genes
+{
+  library(treemap)
+  revigo.names <- c("term_ID","description","frequency","uniqueness","dispensability","representative");
+  revigo.data <- rbind(c("GO:0006690","icosanoid metabolic process",0.15592932189969946,0.943056910277058,0.00762984,"icosanoid metabolic process"),
+                       c("GO:0019372","lipoxygenase pathway",0.019244691220802565,0.9333520111053946,0.49026099,"icosanoid metabolic process"),
+                       c("GO:0019464","glycine decarboxylation via glycine cleavage system",0.07523619358542499,0.9079863313281709,0.32747518,"icosanoid metabolic process"),
+                       c("GO:0030497","fatty acid elongation",0.07301299795515297,0.9358591188826687,0.32675746,"icosanoid metabolic process"),
+                       c("GO:2001293","malonyl-CoA metabolic process",0.059511151322525345,0.9355170874352527,0.69078938,"icosanoid metabolic process"),
+                       c("GO:2001295","malonyl-CoA biosynthetic process",0.053519367977523935,0.9358630638304197,0.22065194,"icosanoid metabolic process"),
+                       c("GO:0010265","SCF complex assembly",0.00911953861641515,0.9952623385930559,0,"SCF complex assembly"),
+                       c("GO:0034198","cellular response to amino acid starvation",0.06431985938755938,0.9444087521047673,0.006329,"cellular response to amino acid starvation"),
+                       c("GO:0010255","glucose mediated signaling pathway",0.0005668902383176985,0.7792404521771,0.68472684,"cellular response to amino acid starvation"),
+                       c("GO:0031929","TOR signaling",0.05839955350738934,0.8244146422917595,0.28523874,"cellular response to amino acid starvation"),
+                       c("GO:0045472","response to ether",0.004956592475029964,0.9405507726884759,0.16610387,"cellular response to amino acid starvation"),
+                       c("GO:0071324","cellular response to disaccharide stimulus",0.0006359029629824618,0.918440165661677,0.68801059,"cellular response to amino acid starvation"),
+                       c("GO:0071329","cellular response to sucrose stimulus",0.0006211145219828697,0.9118559757590926,0.40470041,"cellular response to amino acid starvation"),
+                       c("GO:1901355","response to rapamycin",0.00038696420615599424,0.945894781134579,0.39614169,"cellular response to amino acid starvation"),
+                       c("GO:0040019","positive regulation of embryonic development",0.003036559885249585,0.7947335347313873,0.09411582,"positive regulation of embryonic development"),
+                       c("GO:0033674","positive regulation of kinase activity",0.0016538406517877205,0.7404739477066846,0.27088337,"positive regulation of embryonic development"),
+                       c("GO:1903313","positive regulation of mRNA metabolic process",0.2376527116036122,0.6188147824302259,0.5010169,"positive regulation of embryonic development"),
+                       c("GO:2000234","positive regulation of rRNA processing",0.006615362607150882,0.7182209416846864,0.34470745,"positive regulation of embryonic development"),
+                       c("GO:0055062","phosphate ion homeostasis",0.04733779963969443,0.9514409837742751,-0,"phosphate ion homeostasis"),
+                       c("GO:0007035","vacuolar acidification",0.07733615220736707,0.7808175178660604,0.56567559,"phosphate ion homeostasis"),
+                       c("GO:0055081","monoatomic anion homeostasis",0.027077635470253197,0.9507812383595506,0.51004304,"phosphate ion homeostasis"),
+                       c("GO:0060151","peroxisome localization",0.00026372719782605974,0.9237601749115794,-0,"peroxisome localization"),
+                       c("GO:0006817","phosphate ion transport",0.2426906405041399,0.8723866387719781,0.25520912,"peroxisome localization"),
+                       c("GO:0007034","vacuolar transport",0.4278024859763679,0.8569329935756456,0.40954151,"peroxisome localization"),
+                       c("GO:0015698","inorganic anion transport",0.8722912628806088,0.897757874539155,0.24257536,"peroxisome localization"),
+                       c("GO:0032507","maintenance of protein location in cell",0.09837517426945347,0.8349959661860205,0.43055422,"peroxisome localization"),
+                       c("GO:0034067","protein localization to Golgi apparatus",0.052126789783395674,0.858992929208611,0.19212086,"peroxisome localization"),
+                       c("GO:0034486","vacuolar transmembrane transport",0.025445977479964865,0.9121999895003551,0.12320799,"peroxisome localization"),
+                       c("GO:0051235","maintenance of location",0.2512506831027372,0.909139211462361,0.18246122,"peroxisome localization"),
+                       c("GO:0051645","Golgi localization",0.012962068536142506,0.907799207770462,0.44322855,"peroxisome localization"),
+                       c("GO:0051646","mitochondrion localization",0.04394385243028803,0.9014984337679232,0.57915923,"peroxisome localization"),
+                       c("GO:0072665","protein localization to vacuole",0.21067613048018954,0.8458289400802537,0.66552598,"peroxisome localization"),
+                       c("GO:0072666","establishment of protein localization to vacuole",0.20075801604979646,0.8382765837110473,0.59802436,"peroxisome localization"),
+                       c("GO:0098656","monoatomic anion transmembrane transport",0.4548751919662879,0.8934159204464921,0.27102916,"peroxisome localization"),
+                       c("GO:1905011","transmembrane phosphate ion transport from cytosol to vacuole",0.0009292070428077058,0.899367944334989,0.53391375,"peroxisome localization"),
+                       c("GO:1902659","regulation of glucose mediated signaling pathway",0.004510474504875602,0.8556767355662085,-0,"regulation of glucose mediated signaling pathway"),
+                       c("GO:0010565","regulation of cellular ketone metabolic process",0.06463288138871742,0.7346156201459705,0.22304529,"regulation of glucose mediated signaling pathway"),
+                       c("GO:0010929","positive regulation of auxin mediated signaling pathway",0.00023415031582687548,0.7949223547611656,0.37948485,"regulation of glucose mediated signaling pathway"),
+                       c("GO:0016241","regulation of macroautophagy",0.057734073662407695,0.6753851584128568,0.22128492,"regulation of glucose mediated signaling pathway"),
+                       c("GO:0017148","negative regulation of translation",0.21779183534115995,0.6616381519770471,0.64688619,"regulation of glucose mediated signaling pathway"),
+                       c("GO:0019216","regulation of lipid metabolic process",0.10650635207906255,0.7851157533281655,0.20726298,"regulation of glucose mediated signaling pathway"),
+                       c("GO:0034249","negative regulation of amide metabolic process",0.23996217313971518,0.7053793003212597,0.68743154,"regulation of glucose mediated signaling pathway"),
+                       c("GO:0046890","regulation of lipid biosynthetic process",0.06254771120777494,0.7264899303892461,0.23788923,"regulation of glucose mediated signaling pathway"),
+                       c("GO:0050687","negative regulation of defense response to virus",0.0015798984467897596,0.8250227541409683,0.34242069,"regulation of glucose mediated signaling pathway"),
+                       c("GO:0051248","negative regulation of protein metabolic process",0.3529088912741001,0.6973885750413564,0.31114933,"regulation of glucose mediated signaling pathway"),
+                       c("GO:1900459","positive regulation of brassinosteroid mediated signaling pathway",0.0002021086936610925,0.7962258452701457,0.33965984,"regulation of glucose mediated signaling pathway"),
+                       c("GO:1902661","positive regulation of glucose mediated signaling pathway",0.00035738732415680993,0.7910828546808045,0.38796548,"regulation of glucose mediated signaling pathway"),
+                       c("GO:1903311","regulation of mRNA metabolic process",0.4779772015478174,0.7506124286150798,0.27758205,"regulation of glucose mediated signaling pathway"),
+                       c("GO:2000232","regulation of rRNA processing",0.0076480887369557325,0.8074333137516976,0.10565847,"regulation of glucose mediated signaling pathway"));
+  
+  stuff <- data.frame(revigo.data);
+  names(stuff) <- revigo.names;
+  
+  stuff$frequency <- as.numeric( as.character(stuff$frequency) );
+  stuff$uniqueness <- as.numeric( as.character(stuff$uniqueness) );
+  stuff$dispensability <- as.numeric( as.character(stuff$dispensability) );
+  
+  png("treemap_rep_lrm_180.png", width = 3000, height = 2000, res = 300)
+  
+  treemap(
+    stuff,
+    index = c("representative","description"),
+    vSize = "uniqueness",
+    type = "categorical",
+    vColor = "representative",
+    title = "Revigo TreeMap",
+    inflate.labels = FALSE,      
+    lowerbound.cex.labels = 0,  
+    position.legend = "none"
+  )
+  
+  dev.off()
+  
+  
+}
