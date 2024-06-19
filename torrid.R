@@ -1357,7 +1357,7 @@ psr.res.lrm.30 <- res.lrm.30[psr_genes_in_dataset,]
 as.data.frame(psr.res.lrm.30)
 sig.genes.psr.lrm.30 <- as.data.frame(subset(psr.res.lrm.30, padj < 0.05))
 
-# 
+# HT1 kinase
 ht1 <- read.table("result_2/ht1_genes.csv", sep="\t", header = T)
 ht1_genes_in_dataset <- ht1[ht1 %in% rownames(res.h2o.30.180)]
 sapply(ht1_genes_in_dataset, function(x) barplots.ggplot2(gene = x, dataset = gene.expression.fpkm))
@@ -1669,3 +1669,190 @@ sapply(repressed.genes.lrm.180, function(x) barplots.ggplot2(gene = x, dataset =
   
   
 }
+
+# Result 4
+spikes <- read.table("result_4/espigas.csv", header = T, sep = ";", dec=".", fill = T)
+spikes
+
+shapiro.test(spikes$H2O30)
+shapiro.test(spikes$LRM30)
+shapiro.test(spikes$H2O180)
+shapiro.test(spikes$LRM180)
+
+# Contrast between LRM and H2O under drought
+var.test(spikes$LRM30, spikes$H2O30, ratio = 1)
+t.test(spikes$LRM30, spikes$H2O30, alternative = "g", var.equal = T)
+
+# Contrast between LRM and H2O under irrigation
+var.test(spikes$LRM180, spikes$H2O180, ratio = 1)
+t.test(spikes$LRM180, spikes$H2O180, alternative = "g", var.equal = T)
+
+# Raincloud
+library(ggdist)
+library(ggplot2)
+library(MetBrewer)
+library(ggrepel)
+library(cowplot)
+library(RColorBrewer)
+
+# Prepare matrix
+first.spike <- data.frame(group="1", value=spikes$H2O180)
+second.spike <- data.frame(group="2", value=spikes$LRM180)
+third.spike <- data.frame(group="3", value=spikes$H2O30)
+fourth.spike <- data.frame(group="4", value=spikes$LRM30)
+
+spike.data <- rbind(first.spike, second.spike, third.spike, fourth.spike)
+head(spike.data)
+
+colors.spike <- c("lightsalmon", "lightgreen", "chocolate3", "green4")
+
+rainplot.spike <- ggplot(as.data.frame(spike.data), aes(x = factor(group, levels=unique(group)), y = value, fill = group)) +
+  scale_fill_manual(values=colors.spike, breaks = unique(spike.data$group))+
+  scale_color_manual(values=colors.spike, breaks = unique(spike.data$group))+
+  ggdist::stat_halfeye(
+    adjust = .35, 
+    width = .5, 
+    .width = 0, 
+    justification = -.45, 
+    point_colour = NA,
+  ) + 
+  stat_boxplot(aes(),geom = 'errorbar',linetype=1, width=0.1) +
+  geom_boxplot(
+    width = .25, 
+    outlier.shape = NA,
+    lwd=1
+  ) +
+  geom_point(
+    size = 1.0, aes(color = group),
+    alpha = .4,
+    position = position_jitter(
+      seed = 1, width = .1
+    )
+  ) + 
+  coord_cartesian(xlim = c(1.0, NA), clip = "off")+
+  
+  xlab(NULL) +
+  ylab(NULL)+
+  theme(legend.position = "none", 
+        plot.title = element_text(hjust = 0.5, size = 16), 
+        panel.background = element_rect(fill = "white"),
+        axis.title = element_text(size = 20),
+        axis.text = element_text(size=12),
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1),
+        panel.grid.major = element_line(colour = "white"),
+        panel.grid.minor = element_line(colour = "white"),
+        axis.line.x.bottom = element_line(color = 'black'),
+        axis.line.y.left   = element_line(color = 'black'),
+        panel.border = element_blank()) +
+  ylim(2.5,8)
+
+
+png("raincloud_spike.png", width = 1800, height = 1800, res = 300)
+plot(rainplot.spike)
+dev.off()
+
+# Sup Tables
+
+# Sup Table 1
+res.h2o.30.180 <- results(dds.wheat,contrast=c("treatment","H2O_30","H2O_180"))
+res.h2o.30.180$padj[is.na(res.h2o.30.180$padj)] <- 1
+
+genes.h2o.30.180 <- rownames(res.h2o.30.180)
+
+activated.genes.h2o.30.180 <- genes.h2o.30.180[res.h2o.30.180$log2FoldChange > 1 & res.h2o.30.180$padj < 0.05]
+length(activated.genes.h2o.30.180)
+
+repressed.genes.h2o.30.180 <- genes.h2o.30.180[res.h2o.30.180$log2FoldChange < -1 & res.h2o.30.180$padj < 0.05]
+length(repressed.genes.h2o.30.180)
+
+act_matrix_1 <- as.data.frame(res.h2o.30.180)[activated.genes.h2o.30.180,]
+rep_matrix_1 <- as.data.frame(res.h2o.30.180)[repressed.genes.h2o.30.180,]
+
+# Include Arabidopsis best ortholog
+taestivium2atha <- read.table(file="../TORRID/taestivium_atha.csv",header=T,fill = T)
+
+# Remove identical rows
+taestivium2atha <- taestivium2atha[!duplicated(taestivium2atha),]
+
+# Remove duplicated when one of them is empty
+rep_values <- names(table(taestivium2atha$locusName)[table(taestivium2atha$locusName) > 1])
+taestivium2atha <- taestivium2atha[!(taestivium2atha$locusName %in% rep_values & taestivium2atha$Best.hit.arabi.name == ""),]
+
+act_ind <- sapply(rownames(act_matrix_1), function(x) which(taestivium2atha$locusName == x))
+act_gene <- sapply(act_ind, function(x) taestivium2atha[x,2])
+act_def <- sapply(act_gene, function(x) paste0(x, collapse = "/"))
+
+act_dt_1 <- data.frame(gene = rownames(act_matrix_1), act_matrix_1,
+                       best_arabidopsis_ortholog = act_def)
+write.table(act_dt_1, "sup_table_1_act.tsv", row.names = F, sep = "\t", dec=".", quote = F, col.names = T)
+
+rep_ind <- sapply(rownames(rep_matrix_1), function(x) which(taestivium2atha$locusName == x))
+rep_gene <- sapply(rep_ind, function(x) taestivium2atha[x,2])
+rep_def <- sapply(rep_gene, function(x) paste0(x, collapse = "/"))
+
+rep_dt_1 <- data.frame(gene = rownames(rep_matrix_1), rep_matrix_1,
+                       best_arabidopsis_ortholog = rep_def)
+write.table(rep_dt_1, "sup_table_1_rep.tsv", row.names = F, sep = "\t", dec=".", quote = F, col.names = T)
+
+# Sup Table 2
+res.lrm.h2o.30 <- results(dds.wheat,contrast=c("treatment","LRM_30","H2O_30"))
+res.lrm.h2o.30$padj[is.na(res.lrm.h2o.30$padj)] <- 1
+
+genes.lrm.h2o.30 <- rownames(res.lrm.h2o.30)
+
+activated.genes.lrm.h2o.30 <- genes.lrm.h2o.30[res.lrm.h2o.30$log2FoldChange > 1 & res.lrm.h2o.30$padj < 0.05]
+length(activated.genes.lrm.h2o.30)
+
+repressed.genes.lrm.h2o.30 <- genes.lrm.h2o.30[res.lrm.h2o.30$log2FoldChange < -1 & res.lrm.h2o.30$padj < 0.05]
+length(repressed.genes.lrm.h2o.30)
+
+act_matrix_2 <- as.data.frame(res.lrm.h2o.30)[activated.genes.lrm.h2o.30,]
+rep_matrix_2 <- as.data.frame(res.lrm.h2o.30)[repressed.genes.lrm.h2o.30,]
+
+act_ind2 <- sapply(rownames(act_matrix_2), function(x) which(taestivium2atha$locusName == x))
+act_gene2 <- sapply(act_ind2, function(x) taestivium2atha[x,2])
+act_def2 <- sapply(act_gene2, function(x) paste0(x, collapse = "/"))
+
+act_dt_2 <- data.frame(gene = rownames(act_matrix_2), act_matrix_2,
+                       best_arabidopsis_ortholog = act_def2)
+write.table(act_dt_2, "sup_table_2_act.tsv", row.names = F, sep = "\t", dec=".", quote = F, col.names = T)
+
+rep_ind2 <- sapply(rownames(rep_matrix_2), function(x) which(taestivium2atha$locusName == x))
+rep_gene2 <- sapply(rep_ind2, function(x) taestivium2atha[x,2])
+rep_def2 <- sapply(rep_gene2, function(x) paste0(x, collapse = "/"))
+
+rep_dt_2 <- data.frame(gene = rownames(rep_matrix_2), rep_matrix_2,
+                       best_arabidopsis_ortholog = rep_def2)
+write.table(rep_dt_2, "sup_table_2_rep.tsv", row.names = F, sep = "\t", dec=".", quote = F, col.names = T)
+
+# Sup table 3
+res.lrm.180 <- results(dds.wheat,contrast=c("treatment","LRM_180","H2O_180"))
+res.lrm.180$padj[is.na(res.lrm.180$padj)] <- 1
+
+genes.lrm.180 <- rownames(res.lrm.180)
+
+activated.genes.lrm.180 <- genes.lrm.180[res.lrm.180$log2FoldChange > log2(1.5) & res.lrm.180$padj < 0.05]
+length(activated.genes.lrm.180)
+
+repressed.genes.lrm.180 <- genes.lrm.180[res.lrm.180$log2FoldChange < -log2(1.5) & res.lrm.180$padj < 0.05]
+length(repressed.genes.lrm.180)
+
+act_matrix_3 <- as.data.frame(res.lrm.180)[activated.genes.lrm.180,]
+rep_matrix_3 <- as.data.frame(res.lrm.180)[repressed.genes.lrm.180,]
+
+act_ind3 <- sapply(rownames(act_matrix_3), function(x) which(taestivium2atha$locusName == x))
+act_gene3 <- sapply(act_ind3, function(x) taestivium2atha[x,2])
+act_def3 <- sapply(act_gene3, function(x) paste0(x, collapse = "/"))
+
+act_dt_3 <- data.frame(gene = rownames(act_matrix_3), act_matrix_3,
+                       best_arabidopsis_ortholog = act_def3)
+write.table(act_dt_3, "sup_table_3_act.tsv", row.names = F, sep = "\t", dec=".", quote = F, col.names = T)
+
+rep_ind3 <- sapply(rownames(rep_matrix_3), function(x) which(taestivium2atha$locusName == x))
+rep_gene3 <- sapply(rep_ind3, function(x) taestivium2atha[x,2])
+rep_def3 <- sapply(rep_gene3, function(x) paste0(x, collapse = "/"))
+
+rep_dt_3 <- data.frame(gene = rownames(rep_matrix_3), rep_matrix_3,
+                       best_arabidopsis_ortholog = rep_def3)
+write.table(rep_dt_3, "sup_table_3_rep.tsv", row.names = F, sep = "\t", dec=".", quote = F, col.names = T)
+
